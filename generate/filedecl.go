@@ -3,7 +3,6 @@ package generate
 import (
 	"go/ast"
 	"go/token"
-	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -126,7 +125,6 @@ func (f *File) genDecl(node ast.Node) bool {
 						if i := strings.LastIndex(v, "@"); i > -1 {
 							// 存在排序
 							vs := strings.Split(v, "@")
-							log.Println("FS:", v, vs)
 							fc.Sort, _ = strconv.ParseInt(vs[1], 10, 64)
 							v = v[:i]
 						}
