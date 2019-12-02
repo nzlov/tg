@@ -1,7 +1,6 @@
 package generate
 
 import (
-	"bytes"
 	"fmt"
 	"go/ast"
 	"go/types"
@@ -30,7 +29,7 @@ const (
 )
 
 type Generator struct {
-	Buf     bytes.Buffer
+	gonum   int
 	Pkg     *Package
 	Project string
 
@@ -42,8 +41,9 @@ type Generator struct {
 	Func map[string][]Func // 所有的ModelController都需要的方法
 }
 
-func NewGenerator(trimprefix, output string, linecomment bool) *Generator {
+func NewGenerator(gonum int, trimprefix, output string, linecomment bool) *Generator {
 	return &Generator{
+		gonum:       gonum,
 		TrimPrefix:  trimprefix,
 		LineComment: linecomment,
 		Output:      output,

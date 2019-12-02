@@ -11,6 +11,7 @@ var (
 	output      = flag.String("output", ".", "output path")
 	linecomment = flag.Bool("linecomment", false, "use line comment text as printed text when present")
 	verbose     = flag.Bool("verbose", false, "verbose")
+	gonum       = flag.Int("gonum", 5, "go num")
 )
 
 func main() {
@@ -23,7 +24,7 @@ func main() {
 		args = []string{"."}
 	}
 
-	g := generate.NewGenerator(*trimprefix, *output, *linecomment)
+	g := generate.NewGenerator(*gonum, *trimprefix, *output, *linecomment)
 	g.ParsePackage(args, nil)
 
 	g.Generate()

@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
 	"go/format"
@@ -8,21 +9,19 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
+	"sync"
 
 	"golang.org/x/tools/go/packages"
 )
 
-func (g *Generator) Printf(format string, args ...interface{}) {
-	fmt.Fprintf(&g.Buf, format, args...)
-}
-
-func (g *Generator) Format() []byte {
-	src, err := format.Source(g.Buf.Bytes())
+func (g *Generator) Format(data []byte) []byte {
+	src, err := format.Source(data)
 	if err != nil {
 		log.Printf("warning: internal error: invalid Go generated: %s", err)
 		log.Printf("warning: compile the package to analyze the error")
-		return g.Buf.Bytes()
+		return data
 	}
 	return src
 }
@@ -76,45 +75,74 @@ func (g *Generator) Generate() {
 		}
 	}
 
-	for _, m := range mappers {
-		r := m.Render()
-		//		data, _ := json.MarshalIndent(&r, "", "  ")
-		//		log.Println("R:", string(data))
-		{
-			// init.go
-			g.Buf.Reset()
-
-			err := initT.Execute(&g.Buf, &r)
-			if err != nil {
-				panic(err)
-			}
-
-			src := g.Format()
-			path := filepath.Join(g.Output, r.PackageName)
-			os.MkdirAll(path, os.ModePerm)
-			outputName := filepath.Join(path, "i.go")
-			err = ioutil.WriteFile(outputName, src, 0644)
-			if err != nil {
-				log.Fatalf("writing output: %s", err)
-			}
-		}
-		{
-			g.Buf.Reset()
-
-			err := cT.Execute(&g.Buf, &r)
-			if err != nil {
-				panic(err)
-			}
-
-			src := g.Format()
-			path := filepath.Join(g.Output, r.PackageName)
-			os.MkdirAll(path, os.ModePerm)
-			outputName := filepath.Join(path, "c.go")
-			err = ioutil.WriteFile(outputName, src, 0644)
-			if err != nil {
-				log.Fatalf("writing output: %s", err)
-			}
-		}
+	if len(mappers) < g.gonum {
+		g.gonum = len(mappers)/2 + 1
 	}
 
+	mChan := make(chan Mapper, g.gonum)
+
+	w := &sync.WaitGroup{}
+	for i := 0; i < g.gonum; i++ {
+		w.Add(1)
+		go func(i int) {
+			buf := bytes.NewBufferString("")
+			defer func() {
+				w.Done()
+				log.Println("G", i, "Done")
+				if err := recover(); err != nil {
+					debug.PrintStack()
+					log.Fatalln(err)
+				}
+			}()
+			for {
+				v, ok := <-mChan
+				if !ok {
+					break
+				}
+				log.Println("G", i, v.Name)
+				r := v.Render()
+				//		data, _ := json.MarshalIndent(&r, "", "  ")
+				//		log.Println("R:", string(data))
+				{
+					// init.go
+
+					err := initT.Execute(buf, &r)
+					if err != nil {
+						panic(err)
+					}
+
+					path := filepath.Join(g.Output, r.PackageName)
+					os.MkdirAll(path, os.ModePerm)
+					outputName := filepath.Join(path, "i.go")
+					err = ioutil.WriteFile(outputName, g.Format(buf.Bytes()), 0644)
+					if err != nil {
+						log.Fatalf("writing output: %s", err)
+					}
+				}
+				{
+					buf.Reset()
+					err := cT.Execute(buf, &r)
+					if err != nil {
+						panic(err)
+					}
+
+					path := filepath.Join(g.Output, r.PackageName)
+					os.MkdirAll(path, os.ModePerm)
+					outputName := filepath.Join(path, "c.go")
+					err = ioutil.WriteFile(outputName, g.Format(buf.Bytes()), 0644)
+					if err != nil {
+						log.Fatalf("writing output: %s", err)
+					}
+				}
+			}
+
+		}(i)
+	}
+
+	for _, m := range mappers {
+		mChan <- m
+	}
+	close(mChan)
+	w.Wait()
+	log.Println("Done")
 }
