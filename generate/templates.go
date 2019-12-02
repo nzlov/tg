@@ -221,7 +221,7 @@ func List(ctx *ctx.Context) global.RespModel {
     objs := []models.{{.Name}}{}
 
     {{range .ListBefore}}
-    if err := models.{{.Name}}(ctx,ctx.DB(),ids); err != nil {
+    if err := models.{{.Name}}(ctx,ctx.DB(),&objs); err != nil {
         return global.Resp(global.CodeErrHandle,err.Error())
     }
     {{end}}
@@ -242,7 +242,7 @@ func List(ctx *ctx.Context) global.RespModel {
 	}
 
     {{range .ListAfter}}
-    if err := models.{{.Name}}(ctx,ctx.DB(),ids); err != nil {
+    if err := models.{{.Name}}(ctx,ctx.DB(),&objs); err != nil {
         return global.Resp(global.CodeErrHandle,err.Error())
     }
     {{end}}
@@ -268,7 +268,7 @@ func Info(ctx *ctx.Context) global.RespModel {
 	obj :=models.{{.Name}}{} 
 	
     {{range .InfoBefore}}
-    if err := models.{{.Name}}(ctx,ctx.DB(),ids); err != nil {
+    if err := models.{{.Name}}(ctx,ctx.DB(),&obj); err != nil {
         return global.Resp(global.CodeErrHandle,err.Error())
     }
     {{end}}
@@ -280,17 +280,17 @@ func Info(ctx *ctx.Context) global.RespModel {
         {{- range .InfoPreloadV}}
         "{{.}}",
         {{end}}
-    }).Where("{{.DBIndex}} = ?", ctx.ID()).First(obj).Error; err != nil {
+    }).Where("{{.DBIndex}} = ?", ctx.ID()).First(&obj).Error; err != nil {
         return global.Resp(global.CodeErrDB,err.Error())
 	}
     {{else}}
-	if err :=ctx.DB().Where("{{.DBIndex}} = ?", ctx.ID()).First(obj).Error; err != nil {
+	if err :=ctx.DB().Where("{{.DBIndex}} = ?", ctx.ID()).First(&obj).Error; err != nil {
         return global.Resp(global.CodeErrDB,err.Error())
 	}
     {{end}}
 
     {{range .InfoAfter}}
-    if err := models.{{.Name}}(ctx,ctx.DB(),ids); err != nil {
+    if err := models.{{.Name}}(ctx,ctx.DB(),&obj); err != nil {
         return global.Resp(global.CodeErrHandle,err.Error())
     }
     {{end}}

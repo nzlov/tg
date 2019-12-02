@@ -37,6 +37,11 @@ func (f *File) genDecl(node ast.Node) bool {
 											continue
 										}
 										structTag := reflect.StructTag(strings.Replace(field.Tag.Value, "`", "", -1))
+
+										if v, ok := structTag.Lookup("dbindex"); ok {
+											m.DBIndex = v
+										}
+
 										at := Attr{}
 										at.Params = structTag.Get("params")
 										if at.Params == "" {
