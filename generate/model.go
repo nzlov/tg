@@ -6,6 +6,7 @@ import (
 	"go/ast"
 	"go/types"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -73,45 +74,48 @@ func (m Mapper) Render() Render {
 	}
 
 	for k, v := range m.File.g.Func {
-		mf := []Func{}
+		mfs := []MFunc{}
 		for _, f := range v {
-			if f.Check(m.Name) {
-				mf = append(mf, f)
+			if mf := f.Check(m.Name); mf != nil {
+				mfs = append(mfs, *mf)
 			}
 		}
+
+		sort.Sort(MFuncs(mfs))
+
 		switch k {
 		case FuncType_CreateBefore:
-			r.CreateBefore = mf
+			r.CreateBefore = mfs
 		case FuncType_CreateTxBefore:
-			r.CreateTxBefore = mf
+			r.CreateTxBefore = mfs
 		case FuncType_CreateTxAfter:
-			r.CreateTxAfter = mf
+			r.CreateTxAfter = mfs
 		case FuncType_CreateAfter:
-			r.CreateAfter = mf
+			r.CreateAfter = mfs
 		case FuncType_UpdateBefore:
-			r.UpdateBefore = mf
+			r.UpdateBefore = mfs
 		case FuncType_UpdateTxBefore:
-			r.UpdateTxBefore = mf
+			r.UpdateTxBefore = mfs
 		case FuncType_UpdateTxAfter:
-			r.UpdateTxAfter = mf
+			r.UpdateTxAfter = mfs
 		case FuncType_UpdateAfter:
-			r.UpdateAfter = mf
+			r.UpdateAfter = mfs
 		case FuncType_InfoBefore:
-			r.InfoBefore = mf
+			r.InfoBefore = mfs
 		case FuncType_InfoAfter:
-			r.InfoAfter = mf
+			r.InfoAfter = mfs
 		case FuncType_ListBefore:
-			r.ListBefore = mf
+			r.ListBefore = mfs
 		case FuncType_ListAfter:
-			r.ListAfter = mf
+			r.ListAfter = mfs
 		case FuncType_DeleteBefore:
-			r.DeleteBefore = mf
+			r.DeleteBefore = mfs
 		case FuncType_DeleteTxBefore:
-			r.DeleteTxBefore = mf
+			r.DeleteTxBefore = mfs
 		case FuncType_DeleteTxAfter:
-			r.DeleteTxAfter = mf
+			r.DeleteTxAfter = mfs
 		case FuncType_DeleteAfter:
-			r.DeleteAfter = mf
+			r.DeleteAfter = mfs
 
 		}
 
@@ -134,17 +138,42 @@ func (m Mapper) Render() Render {
 
 			for _, vv := range v {
 
+				if vv == "nosave" {
+					r.CreateSave = false
+					r.UpdateSave = false
+				}
+
+				if strings.HasPrefix(vv, "preload") {
+					vs := strings.Split(vv, "=")
+					pvs := strings.Split(strings.ReplaceAll(vs[1], ">", "\":\""), ",")
+					r.InfoPreload = true
+					r.InfoPreloadV = pvs
+					r.ListPreload = true
+					r.ListPreloadV = pvs
+				}
+
+				if strings.HasPrefix(vv, "security") {
+					vs := strings.Split(vv, "=")
+					sec := strings.Split(vs[1], ",")
+					r.CreateSecurity = sec
+					r.UpdateSecurity = sec
+					r.ListSecurity = sec
+					r.InfoSecurity = sec
+					r.DeleteSecurity = sec
+
+				}
+
 				if strings.HasPrefix(vv, "-") {
 					switch vv {
-					case "Create":
+					case "-Create":
 						r.Create = false
-					case "Update":
+					case "-Update":
 						r.Update = false
-					case "List":
+					case "-List":
 						r.List = false
-					case "Info":
+					case "-Info":
 						r.Info = false
-					case "Delete":
+					case "-Delete":
 						r.Delete = false
 					}
 					continue
@@ -157,6 +186,13 @@ func (m Mapper) Render() Render {
 					for _, v := range ops {
 						vs := strings.Split(v, "=")
 						switch vs[0] {
+						case "save":
+							switch vvs[0] {
+							case "Create":
+								r.CreateSave = true
+							case "Update":
+								r.UpdateSave = true
+							}
 						case "nosave":
 							switch vvs[0] {
 							case "Create":
@@ -173,6 +209,20 @@ func (m Mapper) Render() Render {
 							case "List":
 								r.ListPreload = true
 								r.ListPreloadV = pvs
+							}
+						case "security":
+							sec := strings.Split(vs[1], ",")
+							switch vvs[0] {
+							case "Create":
+								r.CreateSecurity = sec
+							case "Update":
+								r.UpdateSecurity = sec
+							case "Info":
+								r.InfoSecurity = sec
+							case "List":
+								r.ListSecurity = sec
+							case "Delete":
+								r.DeleteSecurity = sec
 							}
 						}
 					}
@@ -269,22 +319,47 @@ func (a Attr) Param(t string) string {
 	return ""
 }
 
+type MFunc struct {
+	Name string
+	Sort int64
+}
+
+type MFuncs []MFunc
+
+func (m MFuncs) Len() int {
+	return len(m)
+}
+func (m MFuncs) Less(i, j int) bool {
+	return m[i].Sort > m[j].Sort
+}
+func (m MFuncs) Swap(i, j int) {
+	m[i], m[j] = m[j], m[i]
+}
+
 type Func struct {
 	Name     string
-	Includes map[string]struct{}
+	Sort     int64
+	Includes map[string]int64
 	Excludes map[string]struct{}
 }
 
-func (f *Func) Check(n string) bool {
+func (f Func) Check(n string) *MFunc {
 	if f.Includes != nil {
-		_, ok := f.Includes[n]
-		return ok
+		if v, ok := f.Includes[n]; ok {
+			if v == -1 {
+				v = f.Sort
+			}
+			return &MFunc{Name: f.Name, Sort: v}
+		}
+		return nil
 	}
 	if f.Excludes != nil {
 		_, ok := f.Excludes[n]
-		return !ok
+		if ok {
+			return nil
+		}
 	}
-	return true
+	return &MFunc{Name: f.Name, Sort: f.Sort}
 }
 
 type File struct {
@@ -318,35 +393,40 @@ type Render struct {
 	CreateSave       bool
 	CreateParams     []Attr
 	CreateParamsDecs []string
-	CreateBefore     []Func
-	CreateTxBefore   []Func
-	CreateTxAfter    []Func
-	CreateAfter      []Func
+	CreateBefore     []MFunc
+	CreateTxBefore   []MFunc
+	CreateTxAfter    []MFunc
+	CreateAfter      []MFunc
+	CreateSecurity   []string
 
 	Update           bool
 	UpdateSave       bool
 	UpdateParams     []Attr
 	UpdateParamsDecs []string
-	UpdateBefore     []Func
-	UpdateTxBefore   []Func
-	UpdateTxAfter    []Func
-	UpdateAfter      []Func
+	UpdateBefore     []MFunc
+	UpdateTxBefore   []MFunc
+	UpdateTxAfter    []MFunc
+	UpdateAfter      []MFunc
+	UpdateSecurity   []string
 
 	List         bool
 	ListPreload  bool
 	ListPreloadV []string
-	ListBefore   []Func
-	ListAfter    []Func
+	ListBefore   []MFunc
+	ListAfter    []MFunc
+	ListSecurity []string
 
 	Info         bool
 	InfoPreload  bool
 	InfoPreloadV []string
-	InfoBefore   []Func
-	InfoAfter    []Func
+	InfoBefore   []MFunc
+	InfoAfter    []MFunc
+	InfoSecurity []string
 
 	Delete         bool
-	DeleteBefore   []Func
-	DeleteTxBefore []Func
-	DeleteTxAfter  []Func
-	DeleteAfter    []Func
+	DeleteBefore   []MFunc
+	DeleteTxBefore []MFunc
+	DeleteTxAfter  []MFunc
+	DeleteAfter    []MFunc
+	DeleteSecurity []string
 }

@@ -78,6 +78,8 @@ func (g *Generator) Generate() {
 
 	for _, m := range mappers {
 		r := m.Render()
+		//		data, _ := json.MarshalIndent(&r, "", "  ")
+		//		log.Println("R:", string(data))
 		{
 			// init.go
 			g.Buf.Reset()

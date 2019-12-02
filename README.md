@@ -10,11 +10,16 @@
 * // @tg Create:nosave  // Create时不自动保存
 * // @tg Create:nosave;preload=v>V,a>A  // Create时不自动保存，并且预加载数据
 * // @tg -Info          // 不需要 Info
+* // @tg security=AppUser // 所有的接口都有Security AppUser
+
+注解都是按顺序执行
 
 #### Gen Options
 
 * nosave 不自动保存
+* save 自动保存
 * preload 预加载  preload=v>V;a>A
+* security 权限 security=AppUser,AppKey
 
 ### dbindex
 用于更新删除时的主键
@@ -51,5 +56,7 @@
 
 ### Gen
 
-* // @tg CreateBefore   // 注册在所有Model `CreateBefore`
-* // @tg CreateBefore:User -UpdateBefor:User // 注册在`User`的`CreateBefore` 注册在除了`User`的`UpdateBefor`
+* // @tg CreateBefore      // 注册在所有Model `CreateBefore`
+* // @tg CreateBefore@99   // 注册在所有Model `CreateBefore`优先级为99 数越大 优先级越高，数相等随机
+* // @tg CreateBefore:User -UpdateBefor:User    // 注册在`User`的`CreateBefore` 注册在除了`User`的`UpdateBefor`
+* // @tg CreateBefore:User@99 -UpdateBefor:User // 注册在`User`的`CreateBefore`且优先级为99 注册在除了`User`的`UpdateBefor`

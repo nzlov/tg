@@ -41,7 +41,7 @@ import (
     "strings"
     {{end}}
 
-    {{if or .Create .Update}}
+    {{if or .Update .Info}}
     "github.com/nzlov/gorm"
     {{end}}
 
@@ -58,9 +58,9 @@ import (
 // @Description create
 // @ID {{.PackageName}}.create
 // @Tags {{.PackageName}}
-// @Security AppUser
-// @Security ApiKey
-// @Security AppKey
+{{- range .CreateSecurity}}
+// @Security {{.}}
+{{- end}}
 // @Accept  x-www-form-urlencoded
 // @Produce json
 {{- range .CreateParamsDecs}} 
@@ -126,9 +126,9 @@ func Create(ctx *ctx.Context) global.RespModel{
 // @Description update
 // @ID {{.PackageName}}.update
 // @Tags {{.PackageName}}
-// @Security AppUser
-// @Security ApiKey
-// @Security AppKey
+{{- range .UpdateSecurity}}
+// @Security {{.}}
+{{- end}}
 // @Accept  x-www-form-urlencoded
 // @Produce json
 // @Param      id             path       string           true   "id"
@@ -205,9 +205,9 @@ func Update(ctx *ctx.Context) global.RespModel {
 // @Description list
 // @ID {{.PackageName}}.list
 // @Tags {{.PackageName}}
-// @Security AppUser
-// @Security ApiKey
-// @Security AppKey
+{{- range .ListSecurity}}
+// @Security {{.}}
+{{- end}}
 // @Produce json
 // @Param        skip         query        integer        false "间隔"  mininum(0)
 // @Param        limit        query        integer        false "条数"  mininum(0) maxinum(100)  default(20)
@@ -255,9 +255,9 @@ func List(ctx *ctx.Context) global.RespModel {
 // @Description info 
 // @ID {{.PackageName}}.info
 // @Tags {{.PackageName}}
-// @Security AppUser
-// @Security ApiKey
-// @Security AppKey
+{{- range .InfoSecurity}}
+// @Security {{.}}
+{{- end}}
 // @Produce  json
 // @Param        id         path         string         true "id"
 // @Param        fields     query        string         true  "请求字段"
@@ -281,10 +281,16 @@ func Info(ctx *ctx.Context) global.RespModel {
         "{{.}}",
         {{end}}
     }).Where("{{.DBIndex}} = ?", ctx.ID()).First(&obj).Error; err != nil {
+        if err == gorm.ErrRecordNotFound{
+            return global.Resp(global.CodeErrNotFound,err.Error())
+        }
         return global.Resp(global.CodeErrDB,err.Error())
 	}
     {{else}}
 	if err :=ctx.DB().Where("{{.DBIndex}} = ?", ctx.ID()).First(&obj).Error; err != nil {
+        if err == gorm.ErrRecordNotFound{
+            return global.Resp(global.CodeErrNotFound,err.Error())
+        }
         return global.Resp(global.CodeErrDB,err.Error())
 	}
     {{end}}
@@ -303,9 +309,9 @@ func Info(ctx *ctx.Context) global.RespModel {
 // @Description delete
 // @ID {{.PackageName}}.delete
 // @Tags {{.PackageName}}
-// @Security AppUser
-// @Security ApiKey
-// @Security AppKey
+{{- range .DeleteSecurity}}
+// @Security {{.}}
+{{- end}}
 // @Accept  x-www-form-urlencoded
 // @Param        id               path       string    true "id"
 // @Success      200              {string}   string

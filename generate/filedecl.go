@@ -3,7 +3,9 @@ package generate
 import (
 	"go/ast"
 	"go/token"
+	"log"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -95,21 +97,40 @@ func (f *File) genDecl(node ast.Node) bool {
 					fc := Func{
 						Name: t.Name.String(),
 					}
+					v = strings.TrimSpace(v)
 					if strings.Index(v, ":") > -1 {
 						vs := strings.Split(v, ":")
 						vsv := strings.Split(vs[1], ",")
-						m := map[string]struct{}{}
-						for _, s := range vsv {
-							m[strings.TrimSpace(s)] = struct{}{}
-						}
+
 						if strings.HasPrefix(v, "-") {
+							m := map[string]struct{}{}
+							for _, s := range vsv {
+								m[strings.TrimSpace(s)] = struct{}{}
+							}
 							fc.Excludes = m
 						} else {
+							m := map[string]int64{}
+							for _, s := range vsv {
+								if i := strings.LastIndex(s, "@"); i > -1 {
+									// 存在排序
+									vs := strings.Split(s, "@")
+									m[strings.TrimSpace(s[:i])], _ = strconv.ParseInt(vs[1], 10, 64)
+								} else {
+									m[strings.TrimSpace(s)] = -1
+								}
+							}
 							fc.Includes = m
 						}
 						v = strings.Trim(vs[0], "-")
+					} else {
+						if i := strings.LastIndex(v, "@"); i > -1 {
+							// 存在排序
+							vs := strings.Split(v, "@")
+							log.Println("FS:", v, vs)
+							fc.Sort, _ = strconv.ParseInt(vs[1], 10, 64)
+							v = v[:i]
+						}
 					}
-					v = strings.TrimSpace(v)
 					if fs, ok := f.g.Func[v]; ok {
 						fs = append(fs, fc)
 						f.g.Func[v] = fs
