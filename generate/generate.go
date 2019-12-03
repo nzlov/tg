@@ -7,6 +7,7 @@ import (
 	"go/format"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"runtime/debug"
@@ -76,7 +77,7 @@ func (g *Generator) Generate() {
 	}
 
 	if len(mappers) < g.gonum {
-		g.gonum = len(mappers)/2 + 1
+		g.gonum = int(math.Log(float64(g.gonum)))
 	}
 
 	mChan := make(chan Mapper, g.gonum)
@@ -105,7 +106,7 @@ func (g *Generator) Generate() {
 				//		log.Println("R:", string(data))
 				{
 					// init.go
-
+					buf.Reset()
 					err := initT.Execute(buf, &r)
 					if err != nil {
 						panic(err)
