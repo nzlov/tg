@@ -80,9 +80,11 @@ func Create(ctx *ctx.Context) global.RespModel{
     {{end}}
 
     {{range .CreateParams}}
-    if o,ok:=ctx.Get{{.CtxFunc}}v("{{.JSON}}");ok && obj.{{.Name}}!=o{
+    {{if ne .CtxFunc ""}}
+    if o,ok:=ctx.Get{{.CtxFunc}}v("{{.JSON}}");ok{
         obj.{{.Name}} = o
     }
+    {{end}}
     {{end}}
 
     tx, err := sqldb.NewTx(ctx.DB())
@@ -158,9 +160,11 @@ func Update(ctx *ctx.Context) global.RespModel {
 
 
     {{range .UpdateParams}}
-    if o,ok:=ctx.Get{{.CtxFunc}}v("{{.JSON}}");ok && obj.{{.Name}}!=o{
+    {{if ne .CtxFunc ""}}
+    if o,ok:=ctx.Get{{.CtxFunc}}v("{{.JSON}}");ok {
         obj.{{.Name}} = o
     }
+    {{end}}
     {{end}}
 
     tx, err := sqldb.NewTx(ctx.DB())

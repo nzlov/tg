@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/format"
+	"go/token"
 	"io/ioutil"
 	"log"
 	"math"
@@ -14,14 +15,15 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/sirupsen/logrus"
 	"golang.org/x/tools/go/packages"
 )
 
 func (g *Generator) Format(data []byte) []byte {
 	src, err := format.Source(data)
 	if err != nil {
-		log.Printf("warning: internal error: invalid Go generated: %s", err)
-		log.Printf("warning: compile the package to analyze the error")
+		logrus.Warnf("warning: internal error: invalid Go generated: %s", err)
+		logrus.Warnln("warning: compile the package to analyze the error")
 		return data
 	}
 	return src
@@ -38,7 +40,7 @@ func (g *Generator) ParsePackage(patterns []string, tags []string) {
 		log.Fatal(err)
 	}
 	if len(pkgs) != 1 {
-		log.Fatalf("error: %d packages found", len(pkgs))
+		logrus.Fatalf("error: %d packages found", len(pkgs))
 	}
 	g.AddPackage(pkgs[0])
 }
@@ -72,6 +74,11 @@ func (g *Generator) Generate() {
 		file.mappers = nil
 		if file.file != nil {
 			ast.Inspect(file.file, file.genDecl)
+			if g.Debug {
+				fset := token.NewFileSet()
+				ast.Print(fset, file.file)
+			}
+
 			mappers = append(mappers, file.mappers...)
 		}
 	}
@@ -89,7 +96,7 @@ func (g *Generator) Generate() {
 			buf := bytes.NewBufferString("")
 			defer func() {
 				w.Done()
-				log.Println("G", i, "Done")
+				logrus.Infoln("G", i, "Done")
 				if err := recover(); err != nil {
 					debug.PrintStack()
 					log.Fatalln(err)
@@ -100,7 +107,7 @@ func (g *Generator) Generate() {
 				if !ok {
 					break
 				}
-				log.Println("G", i, v.Name)
+				logrus.Infoln("G", i, v.Name)
 				r := v.Render()
 				//		data, _ := json.MarshalIndent(&r, "", "  ")
 				//		log.Println("R:", string(data))
@@ -117,7 +124,7 @@ func (g *Generator) Generate() {
 					outputName := filepath.Join(path, "i.go")
 					err = ioutil.WriteFile(outputName, g.Format(buf.Bytes()), 0644)
 					if err != nil {
-						log.Fatalf("writing output: %s", err)
+						logrus.Fatalf("writing output: %s", err)
 					}
 				}
 				{
@@ -132,7 +139,7 @@ func (g *Generator) Generate() {
 					outputName := filepath.Join(path, "c.go")
 					err = ioutil.WriteFile(outputName, g.Format(buf.Bytes()), 0644)
 					if err != nil {
-						log.Fatalf("writing output: %s", err)
+						logrus.Fatalf("writing output: %s", err)
 					}
 				}
 			}
@@ -145,5 +152,5 @@ func (g *Generator) Generate() {
 	}
 	close(mChan)
 	w.Wait()
-	log.Println("Done")
+	logrus.Infoln("Done")
 }

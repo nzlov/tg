@@ -32,6 +32,7 @@
 * min
 * enums
 * params                  // 是否提供接口参数 cu 创建和更新 c仅创建 u仅更新 如果是大写为必填
+* pt                      // 自定义swag params type
 
 
 ## Func
