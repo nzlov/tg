@@ -13,7 +13,7 @@ import (
 	"{{.Project}}/app/ctx"
 )
 
-func Init(e *echo.Echo) {
+func TgInit(e *echo.Echo) {
 	r := e.Group("/{{.PackageName}}")
 
     {{if .Create}}
@@ -54,10 +54,10 @@ import (
 )
 
 {{if .Create}}
-// @Summary create
-// @Description create
+// @Summary Create {{.PackageName}}
+// @Description {{.PackageName}}.create
 // @ID {{.PackageName}}.create
-// @Tags {{.PackageName}}
+// @Tags {{.PackageName}} {{.Desc}}
 {{- range .CreateSecurity}}
 // @Security {{.}}
 {{- end}}
@@ -124,10 +124,10 @@ func Create(ctx *ctx.Context) global.RespModel{
 }
 {{end}}
 {{if .Update}}
-// @Summary update
-// @Description update
+// @Summary Update {{.PackageName}}
+// @Description {{.PackageName}}.update
 // @ID {{.PackageName}}.update
-// @Tags {{.PackageName}}
+// @Tags {{.PackageName}} {{.Desc}}
 {{- range .UpdateSecurity}}
 // @Security {{.}}
 {{- end}}
@@ -205,10 +205,10 @@ func Update(ctx *ctx.Context) global.RespModel {
 }
 {{end}}
 {{if .List}}
-// @Summary list
-// @Description list
+// @Summary List {{.PackageName}}
+// @Description {{.PackageName}}.list
 // @ID {{.PackageName}}.list
-// @Tags {{.PackageName}}
+// @Tags {{.PackageName}} {{.Desc}}
 {{- range .ListSecurity}}
 // @Security {{.}}
 {{- end}}
@@ -255,10 +255,10 @@ func List(ctx *ctx.Context) global.RespModel {
 }
 {{end}}
 {{if .Info}}
-// @Summary info
-// @Description info 
+// @Summary Info {{.PackageName}}
+// @Description {{.PackageName}}.info
 // @ID {{.PackageName}}.info
-// @Tags {{.PackageName}}
+// @Tags {{.PackageName}} {{.Desc}}
 {{- range .InfoSecurity}}
 // @Security {{.}}
 {{- end}}
@@ -309,10 +309,10 @@ func Info(ctx *ctx.Context) global.RespModel {
 }
 {{end}}
 {{if .Delete}}
-// @Summary delete
-// @Description delete
+// @Summary Delete {{.PackageName}}
+// @Description {{.PackageName}}.delete
 // @ID {{.PackageName}}.delete
-// @Tags {{.PackageName}}
+// @Tags {{.PackageName}} {{.Desc}}
 {{- range .DeleteSecurity}}
 // @Security {{.}}
 {{- end}}

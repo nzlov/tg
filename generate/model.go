@@ -144,6 +144,12 @@ func (m Mapper) Render() Render {
 					r.CreateSave = false
 					r.UpdateSave = false
 				}
+				if strings.HasPrefix(vv, "desc") {
+					vs := strings.Split(vv, "=")
+					if len(vs) > 1 {
+						r.Desc = vs[1]
+					}
+				}
 
 				if strings.HasPrefix(vv, "preload") {
 					vs := strings.Split(vv, "=")
@@ -390,6 +396,7 @@ type Render struct {
 	Project     string
 	Name        string
 	DBIndex     string
+	Desc        string
 
 	Create           bool
 	CreateSave       bool

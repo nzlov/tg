@@ -20,6 +20,7 @@
 * save 自动保存
 * preload 预加载  preload=v>V;a>A
 * security 权限 security=AppUser,AppKey
+* desc 接口组注释
 
 ### dbindex
 用于更新删除时的主键
