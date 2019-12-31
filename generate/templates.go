@@ -94,7 +94,7 @@ func Create(ctx *ctx.Context) global.RespModel{
 	defer tx.End()
 
     {{range .CreateTxBefore}}
-    if err := models.{{.Name}}(ctx,ctx.DB(),&obj); err != nil {
+    if err := models.{{.Name}}(ctx,tx.DB(),&obj); err != nil {
         return global.Resp(global.CodeErrHandle,err.Error())
     }
     {{end}}
@@ -106,7 +106,7 @@ func Create(ctx *ctx.Context) global.RespModel{
     {{end}}
 
     {{range .CreateTxAfter}}
-    if err := models.{{.Name}}(ctx,ctx.DB(),&obj); err != nil {
+    if err := models.{{.Name}}(ctx,tx.DB(),&obj); err != nil {
         return global.Resp(global.CodeErrHandle,err.Error())
     }
     {{end}}
@@ -174,7 +174,7 @@ func Update(ctx *ctx.Context) global.RespModel {
 	defer tx.End()
 
     {{range .UpdateTxBefore}}
-    if err := models.{{.Name}}(ctx,ctx.DB(),&obj); err != nil {
+    if err := models.{{.Name}}(ctx,tx.DB(),&obj); err != nil {
         return global.Resp(global.CodeErrHandle,err.Error())
     }
     {{end}}
@@ -187,7 +187,7 @@ func Update(ctx *ctx.Context) global.RespModel {
     {{end}}
 
     {{range .UpdateTxAfter}}
-    if err := models.{{.Name}}(ctx,ctx.DB(),&obj); err != nil {
+    if err := models.{{.Name}}(ctx,tx.DB(),&obj); err != nil {
         return global.Resp(global.CodeErrHandle,err.Error())
     }
     {{end}}
@@ -344,7 +344,7 @@ func Delete(ctx *ctx.Context) global.RespModel {
 	defer tx.End()
 
     {{range .DeleteTxBefore}}
-    if err := models.{{.Name}}(ctx,ctx.DB(),ids); err != nil {
+    if err := models.{{.Name}}(ctx,tx.DB(),ids); err != nil {
         return global.Resp(global.CodeErrHandle,err.Error())
     }
     {{end}}
@@ -354,7 +354,7 @@ func Delete(ctx *ctx.Context) global.RespModel {
 	}
 
     {{range .DeleteTxAfter}}
-    if err := models.{{.Name}}(ctx,ctx.DB(),ids); err != nil {
+    if err := models.{{.Name}}(ctx,tx.DB(),ids); err != nil {
         return global.Resp(global.CodeErrHandle,err.Error())
     }
     {{end}}
