@@ -54,7 +54,7 @@ import (
 )
 
 {{if .Create}}
-// @Summary 创建{{.PackageName}}
+// @Summary 创建{{.Desc}}
 // @Description {{.PackageName}}.create
 // @ID {{.PackageName}}.create
 // @Tags {{.PackageName}} {{.Desc}}
@@ -124,7 +124,7 @@ func Create(ctx *ctx.Context) global.RespModel{
 }
 {{end}}
 {{if .Update}}
-// @Summary 更新{{.PackageName}}
+// @Summary 更新{{.Desc}}
 // @Description {{.PackageName}}.update
 // @ID {{.PackageName}}.update
 // @Tags {{.PackageName}} {{.Desc}}
@@ -205,7 +205,7 @@ func Update(ctx *ctx.Context) global.RespModel {
 }
 {{end}}
 {{if .List}}
-// @Summary {{.PackageName}}列表
+// @Summary {{.Desc}}列表
 // @Description {{.PackageName}}.list
 // @ID {{.PackageName}}.list
 // @Tags {{.PackageName}} {{.Desc}}
@@ -255,7 +255,7 @@ func List(ctx *ctx.Context) global.RespModel {
 }
 {{end}}
 {{if .Info}}
-// @Summary {{.PackageName}}详情
+// @Summary {{.Desc}}详情
 // @Description {{.PackageName}}.info
 // @ID {{.PackageName}}.info
 // @Tags {{.PackageName}} {{.Desc}}
@@ -309,7 +309,7 @@ func Info(ctx *ctx.Context) global.RespModel {
 }
 {{end}}
 {{if .Delete}}
-// @Summary 删除{{.PackageName}}
+// @Summary 删除{{.Desc}}
 // @Description {{.PackageName}}.delete
 // @ID {{.PackageName}}.delete
 // @Tags {{.PackageName}} {{.Desc}}

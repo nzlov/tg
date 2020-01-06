@@ -55,6 +55,9 @@ func (f *File) genDecl(node ast.Node) bool {
 										}
 
 										at.JSON = structTag.Get("json")
+										if at.JSON == "" || at.JSON == "-" {
+											at.JSON = strings.ToLower(at.Name)
+										}
 										at.Enums = structTag.Get("enums")
 										at.MaxLength = structTag.Get("maxlength")
 										at.MinLength = structTag.Get("minlength")

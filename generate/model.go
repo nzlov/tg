@@ -73,6 +73,7 @@ func (m Mapper) Render() Render {
 		DBIndex:     m.DBIndex,
 		CreateSave:  true,
 		UpdateSave:  true,
+		Desc:        m.Name,
 	}
 
 	for k, v := range m.File.g.Func {
