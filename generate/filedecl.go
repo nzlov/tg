@@ -64,28 +64,25 @@ func (f *File) genDecl(node ast.Node) bool {
 										at.Max = structTag.Get("max")
 										at.Min = structTag.Get("min")
 
+										switch ft.Name {
+										case "bool":
+											at.Type = "bool"
+											at.CtxFunc = "Bool"
+										case "int", "int8", "int16", "int32", "int64":
+											at.Type = "integer"
+											at.CtxFunc = "Int64"
+										case "float32", "float64":
+											at.Type = "number"
+											at.CtxFunc = "Float64"
+										default:
+											at.Type = "string"
+											at.CtxFunc = "String"
+										}
 										if v, ok := structTag.Lookup("pt"); ok {
 											vs := strings.Split(v, ":")
-											if len(vs) != 2 {
-												logrus.Debugf("%s:%s param type error:%s", m.Name, at.Name, v)
-												continue
-											}
 											at.Type = vs[0]
-											at.CtxFunc = vs[1]
-										} else {
-											switch ft.Name {
-											case "bool":
-												at.Type = "bool"
-												at.CtxFunc = "Bool"
-											case "int", "int8", "int16", "int32", "int64":
-												at.Type = "integer"
-												at.CtxFunc = "Int64"
-											case "float32", "float64":
-												at.Type = "number"
-												at.CtxFunc = "Float64"
-											default:
-												at.Type = "string"
-												at.CtxFunc = "String"
+											if len(vs) > 1 {
+												at.CtxFunc = vs[1]
 											}
 										}
 										if field.Doc != nil {
