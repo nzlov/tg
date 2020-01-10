@@ -129,7 +129,7 @@ func (g *Generator) Generate() {
 
 					path := filepath.Join(g.Output, r.PackageName)
 					os.MkdirAll(path, os.ModePerm)
-					outputName := filepath.Join(path, "c.go")
+					outputName := filepath.Join(path, "tg.go")
 					err = ioutil.WriteFile(outputName, g.Format(buf.Bytes()), 0644)
 					if err != nil {
 						logrus.Fatalf("writing output: %s", err)
