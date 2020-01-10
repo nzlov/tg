@@ -38,17 +38,19 @@ type Generator struct {
 
 	TrimPrefix  string
 	LineComment bool
+	Template    string
 
 	Func map[string][]Func // 所有的ModelController都需要的方法
 }
 
-func NewGenerator(gonum int, trimprefix, output string, linecomment, debug bool) *Generator {
+func NewGenerator(gonum int, trimprefix, output string, linecomment, debug bool, template string) *Generator {
 	return &Generator{
 		gonum:       gonum,
 		TrimPrefix:  trimprefix,
 		LineComment: linecomment,
 		Output:      output,
 		Debug:       debug,
+		Template:    template,
 
 		Func: map[string][]Func{},
 	}

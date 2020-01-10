@@ -10,6 +10,7 @@ import (
 var (
 	trimprefix  = flag.String("trimprefix", "", "trim the `prefix` from the generated constant names")
 	output      = flag.String("output", ".", "output path")
+	template    = flag.String("template", ".", "custom template")
 	linecomment = flag.Bool("linecomment", false, "use line comment text as printed text when present")
 	verbose     = flag.Bool("verbose", false, "verbose")
 	gonum       = flag.Int("gonum", 5, "go num")
@@ -30,7 +31,7 @@ func main() {
 		args = []string{"."}
 	}
 
-	g := generate.NewGenerator(*gonum, *trimprefix, *output, *linecomment, *debug)
+	g := generate.NewGenerator(*gonum, *trimprefix, *output, *linecomment, *debug, *template)
 	g.ParsePackage(args, nil)
 
 	g.Generate()

@@ -14,6 +14,7 @@ import (
 	"runtime/debug"
 	"strings"
 	"sync"
+	"text/template"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/tools/go/packages"
@@ -69,6 +70,14 @@ func (g *Generator) AddPackage(pkg *packages.Package) {
 
 func (g *Generator) Generate() {
 
+	if g.Template != "" {
+		t, err := template.ParseFiles(g.Template)
+		if err != nil {
+			logrus.Fatalln("Load custom template[", g.Template, "] error:", err)
+		}
+		cT = t
+	}
+
 	mappers := make([]Mapper, 0, 100)
 	for _, file := range g.Pkg.files {
 		file.mappers = nil
@@ -111,22 +120,6 @@ func (g *Generator) Generate() {
 				r := v.Render()
 				//		data, _ := json.MarshalIndent(&r, "", "  ")
 				//		log.Println("R:", string(data))
-				{
-					// init.go
-					buf.Reset()
-					err := initT.Execute(buf, &r)
-					if err != nil {
-						panic(err)
-					}
-
-					path := filepath.Join(g.Output, r.PackageName)
-					os.MkdirAll(path, os.ModePerm)
-					outputName := filepath.Join(path, "i.go")
-					err = ioutil.WriteFile(outputName, g.Format(buf.Bytes()), 0644)
-					if err != nil {
-						logrus.Fatalf("writing output: %s", err)
-					}
-				}
 				{
 					buf.Reset()
 					err := cT.Execute(buf, &r)
