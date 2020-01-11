@@ -73,7 +73,7 @@ func Create(ctx *ctx.Context) global.RespModel{
     {{end}}
 
     {{range .CreateParams}}
-    {{if ne .CtxFunc ""}}
+    {{if ne .CtxFunc "-"}}
     if o,ok:=ctx.Get{{.CtxFunc}}v("{{.JSON}}");ok{
         obj.{{.Name}} = o
     }
@@ -153,7 +153,7 @@ func Update(ctx *ctx.Context) global.RespModel {
 
 
     {{range .UpdateParams}}
-    {{if ne .CtxFunc ""}}
+    {{if ne .CtxFunc "-"}}
     if o,ok:=ctx.Get{{.CtxFunc}}v("{{.JSON}}");ok {
         obj.{{.Name}} = o
     }
