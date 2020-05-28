@@ -82,7 +82,12 @@ func (f *File) genDecl(node ast.Node) bool {
 											vs := strings.Split(v, ":")
 											at.Type = vs[0]
 											if len(vs) > 1 {
-												at.CtxFunc = vs[1]
+												if strings.HasPrefix(vs[1], "@") {
+													at.CtxFunc = "@"
+													at.IToM = vs[1][1:]
+												} else {
+													at.CtxFunc = vs[1]
+												}
 											}
 										}
 										if field.Doc != nil {
@@ -128,7 +133,12 @@ func (f *File) genDecl(node ast.Node) bool {
 												continue
 											}
 											at.Type = vs[0]
-											at.CtxFunc = vs[1]
+											if strings.HasPrefix(vs[1], "@") {
+												at.CtxFunc = "@"
+												at.IToM = vs[1][1:]
+											} else {
+												at.CtxFunc = vs[1]
+											}
 										}
 										if field.Doc != nil {
 											at.Desc = strings.TrimSpace(field.Doc.Text())

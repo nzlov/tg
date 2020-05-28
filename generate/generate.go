@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
-	"go/format"
 	"go/token"
 	"io/ioutil"
 	"log"
 	"math"
 	"os"
+	exec "os/exec"
 	"path/filepath"
 	"runtime/debug"
 	"strings"
@@ -19,16 +19,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/tools/go/packages"
 )
-
-func (g *Generator) Format(data []byte) []byte {
-	src, err := format.Source(data)
-	if err != nil {
-		logrus.Warnf("warning: internal error: invalid Go generated: %s", err)
-		logrus.Warnln("warning: compile the package to analyze the error")
-		return data
-	}
-	return src
-}
 
 func (g *Generator) ParsePackage(patterns []string, tags []string) {
 	cfg := &packages.Config{
@@ -130,7 +120,7 @@ func (g *Generator) Generate() {
 					path := filepath.Join(g.Output, r.PackageName)
 					os.MkdirAll(path, os.ModePerm)
 					outputName := filepath.Join(path, "tg.go")
-					err = ioutil.WriteFile(outputName, g.Format(buf.Bytes()), 0644)
+					err = ioutil.WriteFile(outputName, buf.Bytes(), 0644)
 					if err != nil {
 						logrus.Fatalf("writing output: %s", err)
 					}
@@ -145,5 +135,14 @@ func (g *Generator) Generate() {
 	}
 	close(mChan)
 	w.Wait()
+
+	logrus.Infoln("Gen Done")
+	logrus.Infoln("Start Format")
+
+	_, err := exec.Command("goimports", "-w", g.Output).Output()
+	if err != nil {
+		logrus.Fatalln("Auto Format error:", err.Error())
+	}
+
 	logrus.Infoln("Done")
 }

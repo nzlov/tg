@@ -270,6 +270,7 @@ type Attr struct {
 	Name      string
 	Type      string
 	CtxFunc   string
+	IToM      string
 	JSON      string
 	Enums     string
 	MaxLength string
